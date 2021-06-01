@@ -1,0 +1,111 @@
+{% extends 'stark/layout.html' %}
+{% load stark %}
+{% block css %}
+    <style>
+        .comb-search {
+            padding: 5px 10px;
+        }
+
+        .row .whole {
+            min-width: 40px;
+            float: left;
+            display: inline-block;
+            padding: 5px 0 5px 8px;
+            margin: 3px;
+            font-weight: bold;
+
+        }
+
+        .row .others {
+            padding-left: 60px;
+        }
+
+        .row a {
+            display: inline-block;
+            padding: 5px 8px;
+            margin: 3px;
+            border: 1px solid #d4d4d4;
+
+        }
+
+        .row a {
+            display: inline-block;
+            padding: 5px 8px;
+            margin: 3px;
+            border: 1px solid #d4d4d4;
+        }
+
+        a.active {
+            color: #fff;
+            background-color: #337ab7;
+            border-color: #2e6da4;
+
+        element.style {
+
+        }
+
+        }
+    </style>
+{% endblock %}
+{% block content %}
+    <div >
+        {#        {% if list_filter %}#}
+        <div class="comb-search">
+            {% for row in cl.get_list_filter_rows %}
+                <div class="row">
+                    {% for obj in row %}
+                        {{ obj|safe }}
+                    {% endfor %}
+                </div>
+            {% endfor %}
+
+        </div>
+
+        {#    {% endif %}#}
+        {% if cl.add_btn %}
+            <div style="margin: 5px 0;">
+                {{ cl.add_btn }}
+            </div>
+        {% endif %}
+
+        {% if cl.search_list %}
+            <div style="float: right">
+                <form action="" method="get" class="form-inline">
+                    <div class="form-group" style="margin: 10px">
+                        <input type="text" class="form-control" style="min-width: 200px" name="q" value='{{ cl.q }}'
+                               placeholder="请输入关键字搜索">
+                        {#                        <input type="submit" value="搜索" class="btn btn-primary">#}
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fa fa-search" aria-hidden="true"></i>
+                        </button>
+                    </div>
+
+                </form>
+            </div>
+
+        {% endif %}
+
+        <form action="" class="form-inline" method="post">
+            {% csrf_token %}
+            {% if cl.action_list %}
+                <div class="form-group" style="padding: 10px 0">
+                    <select name="action" id="" class="form-control" style="min-width: 200px">
+                        <option value="">请选择功能</option>
+                        {% for item in cl.action_list %}
+                            <option value="{{ item.name }}">{{ item.text }}</option>
+                        {% endfor %}
+                    </select>
+                    <input class="btn btn-primary" type="submit" value="执行">
+                </div>
+            {% endif %}
+            {% table cl %}
+            <nav aria-label="Page navigation">
+                <ul class="pagination">
+                    {{ cl.page.page_html|safe }}
+                </ul>
+            </nav>
+
+        </form>
+
+    </div>
+{% endblock %}

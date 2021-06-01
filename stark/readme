@@ -1,0 +1,15 @@
+使用stark组件需要完成以下几个步骤：
+1.拷贝stark APP 到任何系统
+2.在目标project中注册 stark app，如：
+    INSTALLED_APPS = [
+        ...
+        'stark.apps.StarkConfig'
+    ]
+3.如果想要使用stark组件，则需要在目标app根目录创建 stark.py
+4.配置路由信息
+    from stark.service.stark import site
+    urlpatterns = [
+        ...
+        path('stark/', site.urls),
+    ]
+5.接下来就可以使用stark组件进行快速的增删改查
