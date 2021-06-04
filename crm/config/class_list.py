@@ -18,7 +18,7 @@ class Class_listConfig(StarkConfig):
         return row.start_date.strftime("%Y-%m-%d")
     list_display = ['id',display_title, 'school',  'price',
                     start_date,
-                    'graduate_date',
+                    # 'graduate_date',
                     'class_teacher',
                     # 'tech_teachers_set__nickname',
                     StarkConfig.display_edit_del]

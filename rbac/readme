@@ -1,0 +1,82 @@
+使用rbac组件，必须遵循以下规则
+ 1.清除rbac/migrations目录下所有数据库迁移记录（保留_init_.py）
+ 2.在项目路由系统中注册rbac相关路由
+    urlpatterns = [
+    ...
+    path('rbac/', include('rbac.urls',namespace='rbac')),
+    ]
+3.注册app
+    'rbac.apps.RbacConfig'
+4.继承（业务用户表继承rbac用户表）
+     如：
+        rbac：
+            class UserInfo(models.Model):
+                """
+                用户表
+                """
+                name = models.CharField(verbose_name='用户名', max_length=32)
+                password = models.CharField(verbose_name='密码', max_length=64)
+                email = models.CharField(verbose_name='邮箱', max_length=32)
+                roles = models.ManyToManyField(verbose_name='拥有的所有角色', to=Role, blank=True)
+
+                def __str__(self):
+                    return self.name
+
+                class Meta:
+                    # django以后再做数据库迁移时，不再为UserInfo类创建相关的表以及表结构了。
+                    # 此类可以当做"父类"，被其他Model类继承。
+                    abstract = True
+        crm:
+            class UserInfo(RbacUserInfo):
+                """
+                员工表
+                """
+                names = models.CharField(verbose_name='真实姓名',max_length=16)
+                phone = models.CharField(verbose_name='手机号', max_length=32)
+                gender_choices = (
+                    (1, '男'),
+                    (2, '女'),
+                )
+                gender = models.IntegerField(verbose_name='性别', choices=gender_choices, default=1)
+
+                depart = models.ForeignKey(verbose_name='部门', to="Department",on_delete=models.CASCADE)
+
+                def __str__(self):
+                    return self.names
+
+
+5.数据库迁移
+6.rbac提供url
+    urlpatterns = [
+
+    url(r'^role/list/$', role.role_list, name='role_list'),  # rbac:role_list
+    url(r'^role/add/$', role.role_add, name='role_add'),  # rbac:role_add
+    url(r'^role/edit/(?P<pk>\d+)/$', role.role_edit, name='role_edit'),  # rbac:role_edit
+    url(r'^role/del/(?P<pk>\d+)/$', role.role_del, name='role_del'),  # rbac:role_del
+
+    # url(r'^user/list/$', user.user_list, name='user_list'),
+    # url(r'^user/add/$', user.user_add, name='user_add'),
+    # url(r'^user/edit/(?P<pk>\d+)/$', user.user_edit, name='user_edit'),  # rbac:user_edit
+    # url(r'^user/del/(?P<pk>\d+)/$', user.user_del, name='user_del'),
+    # url(r'^user/reset/password/(?P<pk>\d+)/$', user.user_reset_pwd, name='user_reset_pwd'),
+
+    url(r'^menu/list/$', menu.menu_list, name='menu_list'),
+    url(r'^menu/add/$', menu.menu_add, name='menu_add'),
+    url(r'^menu/edit/(?P<pk>\d+)/$', menu.menu_edit, name='menu_edit'),
+    url(r'^menu/del/(?P<pk>\d+)/$', menu.menu_del, name='menu_del'),
+
+    url(r'^second/menu/add/(?P<menu_id>\d+)$', menu.second_menu_add, name='second_menu_add'),
+    url(r'^second/menu/edit/(?P<pk>\d+)/$', menu.second_menu_edit, name='second_menu_edit'),
+    url(r'^second/menu/del/(?P<pk>\d+)/$', menu.second_menu_del, name='second_menu_del'),
+
+    url(r'^permission/add/(?P<second_menu_id>\d+)/$', menu.permission_add, name='permission_add'),
+    url(r'^permission/edit/(?P<pk>\d+)/$', menu.permission_edit, name='permission_edit'),
+    url(r'^permission/del/(?P<pk>\d+)/$', menu.permission_del, name='permission_del'),
+
+    url(r'^multi/permissions/$', menu.multi_permissions, name='multi_permissions'),
+    url(r'^multi/permissions/del/(?P<pk>\d+)/$', menu.multi_permissions_del, name='multi_permissions_del'),
+
+    url(r'^distribute/permissions/$', menu.distribute_permissions, name='distribute_permissions'),
+
+    ]
+

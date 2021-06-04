@@ -12,4 +12,95 @@
         ...
         path('stark/', site.urls),
     ]
-5.接下来就可以使用stark组件进行快速的增删改查
+5.接下来就可以使用stark组件进行快速的增删改查，实例：
+from django.urls import path
+from django.utils.safestring import mark_safe
+from django.shortcuts import *
+from crm.models import *
+from stark.service.stark import site, StarkConfig
+class UserConfig(StarkConfig):
+    # ###########自定义显示性别########################(以优化成组件第72行 )
+    def display_gender(self, row=None, header=False):
+        if header:
+            return '性别'
+        return row.get_gender_display()
+
+    # #########自定义显示详细信息(扩展)####################
+    def display_detail(self, row=None, header=False):
+        if header:
+            return '查看详情'
+        orl = reverse('stark:crm_userinfo_detail',kwargs={'pk':row.id})
+        return mark_safe('<a href = "%s">%s</a>' % (orl,row.nickname))
+
+    list_display = [display_detail, display_gender, 'phone', 'depart', StarkConfig.display_edit_del]
+
+    ############################ 自定义添加详情路由及视图(扩展)############
+    def extra_url(self):
+        info = self.model_class._meta.app_label, self.model_class._meta.model_name
+        urlpatterns = [
+            path('detail/<int:pk>', self.wrapper(self.detail_view), name='%s_%s_detail' % info),]
+        return urlpatterns
+    def detail_view(self,request,pk):
+        return HttpResponse('详情页面；；；')
+
+    ############################搜索##################################
+    search_list = ['nickname','depart__title']
+    site.register(UserInfo, UserConfig)
+
+
+    #######################组件内容扩展###############################
+    list_filter = [Option(),]	筛选搜索
+                list_filter = [
+                    Option(field='school',is_choice=False,is_multi=False,text_func=lambda x:x.title,value_func=lambda x:x.pk),
+                    Option(field='course',is_choice=False,is_multi=False,text_func=lambda x:x.name,value_func=lambda x:x.pk),
+                ]
+    search_list = []	#模糊搜索
+
+    action_list = []	#批量操作
+            def multi_init(self, request):
+            """
+            :param request:
+            :return:
+            """
+            （逻辑代码）
+        multi_init.text = '批量操作名字'
+        action_list = [multi_init]
+
+    list_display = []	#表格式列表上显示的字段
+        可用配置：
+                StarkConfig.display_checkbox (多选框)
+                get_choice_text('字段名', "列名")（公共组件获取choice对应的内容）
+                StarkConfig.display_edit（修改）
+                StarkConfig.display_del（删除）
+                StarkConfig.display_edit_del（修改删除）
+
+
+    order_by = []		#排序[字段]
+    model_from_class	#自定义ModelFrom，后面跟modelform名
+        实例：
+        class PriModelForm(forms.ModelForm):
+            class Meta:
+                model = Customer
+                exclude = ['consultant']
+
+         class PrivateCustConfig(StarkConfig):
+            model_from_class=  PriModelForm
+
+
+
+
+    def extra_url(self):#自己扩展URl
+		pass
+    def get_url(self): #自定义url
+    	pass
+    def add_view(self, request): #如果配置有逻辑，优先加载当前配置
+        pass
+    def change_view(self, request, pk):
+        pass
+    def delete_view(self, request, pk):
+        pass
+    def changelist_view(self, request):
+        pass
+    site.register(models.Project,Projfig)
+
+

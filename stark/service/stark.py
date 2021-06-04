@@ -8,6 +8,29 @@ from django.db.models import Q
 from django.db.models.fields.related import ForeignKey,ManyToManyField
 from django.http import QueryDict
 
+class ModelConfigMapping(object):
+    def __init__(self,model,config,prev):
+        self.model = model
+        self.config = config
+        self.prev = prev
+
+def get_choice_text(field,head):
+    """
+    #使用闭包
+    公共组件获取choice对应的内容
+    :param field: 字段名称
+    :param head: 名称
+    :return:
+    """
+
+    def inner(self, row=None, header=False):
+        if header:
+            return head
+        func_name = 'get_%s_display'%field
+        return getattr(row,func_name)() #get_field_display()
+
+    return inner
+
 class Row(object):
     def __init__(self,data_list,option,query_dict):
         """
@@ -170,9 +193,10 @@ class StarkConfig(object):
     search_list = []
     list_filter = []
 
-    def __init__(self, model_class, size):
+    def __init__(self, model_class, size,prev):
         self.model_class = model_class
         self.size = size
+        self.prev = prev
         self.request = None
 
         self.back_condition_key = '_filter'
@@ -240,6 +264,8 @@ class StarkConfig(object):
                 comb_condition['%s__in'%option.field] = element
         return comb_condition
 
+    def get_queryset(self):
+        return self.model_class.objects
     def changelist_view(self, request):
         """
         列表页面
@@ -267,7 +293,8 @@ class StarkConfig(object):
 
        #获取组合搜索筛选
         list_filter = self.get_list_filter()
-        queryset = self.model_class.objects.filter(con).filter(**self.get_list_filter_condition()).order_by(*self.get_order_by()).distinct()[page.start:page.end]
+        origin_queryset = self.get_queryset()
+        queryset = origin_queryset.filter(con).filter(**self.get_list_filter_condition()).order_by(*self.get_order_by()).distinct()[page.start:page.end]
 
         cl = ChangeList(self, queryset, q, search_list, page)
 
@@ -284,6 +311,13 @@ class StarkConfig(object):
 
         return render(request, 'stark/changelist.html', {'cl': cl})
 
+    def save(self,form,modify=False):
+        """
+        :param form:
+        :param modify:True 表示要修改，False新增
+        :return:
+        """
+        return form.save()
     def add_view(self, request):
         """
         添加页面
@@ -296,7 +330,7 @@ class StarkConfig(object):
             return render(request, 'stark/change.html', {'form': form})
         form = AddModelForm(request.POST)
         if form.is_valid():
-            form.save()
+            self.save(form,modify=False)
             return redirect(self.reverse_list_url())
         return render(request, 'stark/change.html', {'form': form})
 
@@ -316,7 +350,7 @@ class StarkConfig(object):
             return render(request, 'stark/change.html', {'form': form})
         form = ModelFromClass(data=request.POST, instance=obj)
         if form.is_valid():
-            form.save()
+            self.save(form,modify=True)
             return redirect(self.reverse_list_url())
         return render(request, 'stark/change.html', {'form': form})
 
@@ -340,12 +374,11 @@ class StarkConfig(object):
         return inner
 
     def get_urls(self):
-        info = self.model_class._meta.app_label, self.model_class._meta.model_name
         urlpatterns = [
-            path('list/', self.wrapper(self.changelist_view), name='%s_%s_changlist' % info),
-            path('add/', self.wrapper(self.add_view), name='%s_%s_add' % info),
-            path('change/<int:pk>/', self.wrapper(self.change_view), name='%s_%s_change' % info),
-            path('del/<int:pk>/', self.wrapper(self.delete_view), name='%s_%s_del' % info),
+            path('list/', self.wrapper(self.changelist_view), name=self.get_list_url_name),
+            path('add/', self.wrapper(self.add_view), name=self.get_add_url_name),
+            path('change/<int:pk>/', self.wrapper(self.change_view), name=self.get_change_url_name),
+            path('del/<int:pk>/', self.wrapper(self.delete_view), name=self.get_del_url_name),
         ]
 
         extra = self.extra_url()
@@ -357,11 +390,48 @@ class StarkConfig(object):
     def extra_url(self):
         pass
 
-    def reverse_list_url(self):
+    @property
+    def get_add_url_name(self):
         app_label = self.model_class._meta.app_label
         model_name = self.model_class._meta.model_name
+        if self.prev:
+            name = '%s_%s_%s_add' % (app_label,model_name,self.prev)
+        else:
+            name = '%s_%s_add' % (app_label,model_name)
+        return name
+
+    @property
+    def get_list_url_name(self):
+        app_label = self.model_class._meta.app_label
+        model_name = self.model_class._meta.model_name
+        if self.prev:
+            name = '%s_%s_%s_changelist' % (app_label,model_name,self.prev)
+        else:
+            name = '%s_%s_changelist' % (app_label,model_name)
+        return name
+
+    @property
+    def get_change_url_name(self):
+        app_label = self.model_class._meta.app_label
+        model_name = self.model_class._meta.model_name
+        if self.prev:
+            name = '%s_%s_%s_change' % (app_label,model_name,self.prev)
+        else:
+            name = '%s_%s_change' % (app_label,model_name)
+        return name
+
+    @property
+    def get_del_url_name(self):
+        app_label = self.model_class._meta.app_label
+        model_name = self.model_class._meta.model_name
+        if self.prev:
+            name = '%s_%s_%s_del' % (app_label,model_name,self.prev)
+        else:
+            name = '%s_%s_del' % (app_label,model_name)
+        return name
+    def reverse_list_url(self):
         namespace = self.size.namespace
-        name = '%s:%s_%s_changlist' % (namespace, app_label, model_name)
+        name = '%s:%s' % (namespace,self.get_list_url_name)
         list_url = reverse(name)
 
         origin_condition = self.request.GET.get(self.back_condition_key)
@@ -371,10 +441,8 @@ class StarkConfig(object):
         return list_url
 
     def reverse_add_url(self):
-        app_label = self.model_class._meta.app_label
-        model_name = self.model_class._meta.model_name
         namespace = self.size.namespace
-        name = '%s:%s_%s_add' % (namespace, app_label, model_name)
+        name = '%s:%s' % (namespace,self.get_add_url_name)
         add_url = reverse(name)
 
         if not self.request.GET:
@@ -386,10 +454,8 @@ class StarkConfig(object):
         return add_url
 
     def reverse_edit_url(self, row):
-        app_label = self.model_class._meta.app_label
-        model_name = self.model_class._meta.model_name
         namespace = self.size.namespace
-        name = '%s:%s_%s_change' % (namespace, app_label, model_name)
+        name = '%s:%s' % (namespace, self.get_change_url_name)
         edit_url = reverse(name, kwargs={'pk': row.pk})
         if not self.request.GET:
             return edit_url
@@ -400,10 +466,8 @@ class StarkConfig(object):
         return edit_url
 
     def reverse_del_url(self, row):
-        app_label = self.model_class._meta.app_label
-        model_name = self.model_class._meta.model_name
         namespace = self.size.namespace
-        name = '%s:%s_%s_del' % (namespace, app_label, model_name)
+        name = '%s:%s' % (namespace, self.get_del_url_name)
         del_url = reverse(name, kwargs={'pk': row.pk})
         if not self.request.GET:
             return del_url
@@ -412,7 +476,6 @@ class StarkConfig(object):
         new_query_dict[self.back_condition_key] = param_str
         del_url = "%s?%s" % (del_url, new_query_dict.urlencode(),)
         return del_url
-
     @property
     def urls(self):
         return self.get_urls()
@@ -421,25 +484,30 @@ class StarkConfig(object):
 class AdminSite(object):
 
     def __init__(self):
-        self._registry = {}
+        self._registry = []
         self.app_name = 'stark'
         self.namespace = 'stark'
 
-    def register(self, model_class, stark_config=None):
+    def register(self, model_class, stark_config=None,prev = None):
         # print(99999)
         if not stark_config:
             stark_config = StarkConfig
-        self._registry[model_class] = stark_config(model_class, self)
+        self._registry.append(ModelConfigMapping(model_class,stark_config(model_class,self,prev),prev))
 
     def get_urls(self):
         urlpatterns = []
         # urlpatterns.append(path('x1/',self.x1))
 
-        for k, v in self._registry.items():
-            app_label = k._meta.app_label
-            model_name = k._meta.model_name
+        for item in self._registry:
+            app_label = item.model._meta.app_label
+            model_name = item.model._meta.model_name
             # print(model_name)
-            urlpatterns.append(path('{}/{}/'.format(app_label, model_name, ), (v.urls, None, None)))
+            if item.prev:
+                temp = path('{}/{}/{}/'.format(app_label, model_name,item.prev ), (item.config.urls, None, None))
+            else:
+                temp = path('{}/{}/'.format(app_label, model_name, ), (item.config.urls, None, None))
+
+            urlpatterns.append(temp)
         return urlpatterns
 
     @property

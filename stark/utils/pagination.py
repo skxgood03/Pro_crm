@@ -2,7 +2,7 @@
 分页组件
 """
 class Pagination(object):
-    def __init__(self, current_page, all_count, base_url,query_params,  per_page=5, pager_page_count=11):
+    def __init__(self, current_page, all_count, base_url,query_params,  per_page=15 , pager_page_count=11):
         """
         分页初始化
         :param current_page: 当前页码
