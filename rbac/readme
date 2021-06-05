@@ -54,11 +54,6 @@
     url(r'^role/edit/(?P<pk>\d+)/$', role.role_edit, name='role_edit'),  # rbac:role_edit
     url(r'^role/del/(?P<pk>\d+)/$', role.role_del, name='role_del'),  # rbac:role_del
 
-    # url(r'^user/list/$', user.user_list, name='user_list'),
-    # url(r'^user/add/$', user.user_add, name='user_add'),
-    # url(r'^user/edit/(?P<pk>\d+)/$', user.user_edit, name='user_edit'),  # rbac:user_edit
-    # url(r'^user/del/(?P<pk>\d+)/$', user.user_del, name='user_del'),
-    # url(r'^user/reset/password/(?P<pk>\d+)/$', user.user_reset_pwd, name='user_reset_pwd'),
 
     url(r'^menu/list/$', menu.menu_list, name='menu_list'),
     url(r'^menu/add/$', menu.menu_add, name='menu_add'),
@@ -79,4 +74,48 @@
     url(r'^distribute/permissions/$', menu.distribute_permissions, name='distribute_permissions'),
 
     ]
+
+7.配置文件写上此项目（非组件）用户表的类的路径
+    USER_MODEL_PATH = 'crm.models.UserInfo'
+
+8.进入url menu/list/权限列表，分配所有url
+
+9.进入distribute/permissions/给角色分配权限，以及给用户分配角色
+
+10.登陆用户，密码验证成功存入session
+    实例：    request.session['user_info'] = {'id':user_obj.id,'name':user_obj.names}
+        #权限信息初始化
+        init_permission(user_obj,request) #两个参数第一个用户对象，第二个request
+
+        return redirect('/stark/crm/course/list/')
+11.setting加配置
+    PERMISSION_SESSION_KEY = "fdsfdfdsf"
+    MENU_SESSION_KEY = "hhtrhrth"
+
+12.对请求进行权限校验（加权限中间件）
+    MIDDLEWARE = [
+        ...
+        'rbac.middlewares.rbac.RbacMiddleware'
+        ]
+
+13,setting设置白名单
+    VALID_URL_LIST = [
+    '^/login/$',
+    '^/admin/.*',
+]
+NO_PERMISSION_LIST = [
+    '/index/',
+    '/logout/',
+]
+
+14.生成动态菜单
+
+    {% load rbac %}
+    {% multi_menu request %} #二级菜单
+    {% breadcrumb request  %} #导航条
+    在想要生成的页面引入css样式
+        <link rel="stylesheet" href="{% static 'stark/css/nav.css' %} "/>
+        <script src="{% static 'rbac/js/rbac.js' %}"></script>
+
+
 

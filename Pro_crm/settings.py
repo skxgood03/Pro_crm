@@ -48,7 +48,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    # 'rbac.middlewares.rbac.RbacMiddleware'
+    'rbac.middlewares.rbac.RbacMiddleware'
 ]
 
 ROOT_URLCONF = 'Pro_crm.urls'
@@ -122,10 +122,21 @@ STATIC_URL = '/static/'
 PERMISSION_SESSION_KEY = "luffy_permission_url_list_key"
 MENU_SESSION_KEY = "luffy_permission_menu_key"
 RBAC_USER_MODLE_CLASS = "crm.models.UserInfo"
-# VALID_URL_LIST = [
-#     '^/login/$',
-#     '^/admin/.*',
-# ]
+# 白名单
+VALID_URL_LIST = [
+    '^/login/$',
+    '^/admin/.*',
+]
+AUTO_DISCOVER_EXCLUDE = [
+    '/admin/.*',
+    '/login/',
+    '/logout/',
+    '/index/',
+]
+NO_PERMISSION_LIST = [
+    '/index/',
+    '/logout/',
+]
 
 #############crm相关配置#######################
 MAX_PRIVATE_CUSTOMER = 150

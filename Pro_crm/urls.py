@@ -16,8 +16,10 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path,include
 from stark.service.stark import site
+from crm import views
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('stark/', site.urls),
     path('rbac/', include(('rbac.urls','rbac'),namespace='rbac')),
+    path('login/', views.login,name = 'login'),
 ]

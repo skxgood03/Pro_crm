@@ -6,7 +6,7 @@ from rbac import models
 from rbac.forms.base import BootStrapModelForm
 
 ICON_LIST = [
-    ['fa-hand-scissors-o', '<i aria-hidden="true" class="fa fa-hand-scissors-o"></i>'],
+    ['fa fa-hand-scissors-o', '<i aria-hidden="true" class="fa fa-hand-scissors-o"></i>'],
     ['fa-hand-spock-o', '<i aria-hidden="true" class="fa fa-hand-spock-o"></i>'],
     ['fa-hand-stop-o', '<i aria-hidden="true" class="fa fa-hand-stop-o"></i>'],
     ['fa-handshake-o', '<i aria-hidden="true" class="fa fa-handshake-o"></i>'],

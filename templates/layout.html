@@ -1,5 +1,6 @@
 {% load staticfiles %}
 {% load static %}
+{% load rbac %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -10,6 +11,8 @@
     <link rel="stylesheet" href="{% static 'stark/plugins/font-awesome/css/font-awesome.css' %} "/>
     <link rel="stylesheet" href="{% static 'stark/css/commons.css' %} "/>
     <link rel="stylesheet" href="{% static 'stark/css/nav.css' %} "/>
+
+    <link rel="stylesheet" href="{% static 'rbac/css/rbac.css' %}">
     {% block css %} {% endblock %}
     <style>
         body {
@@ -121,12 +124,12 @@
 <div class="pg-body">
     <div class="left-menu">
         <div class="menu-body">
-
+            {% multi_menu request %}
         </div>
     </div>
     <div class="right-body">
         <div>
-
+            {% breadcrumb request  %}
         </div>
         <div style="padding: 10px">
             {% block content %} {% endblock %}
@@ -135,9 +138,9 @@
     </div>
 </div>
 
-
 <script src="{% static 'stark/js/jquery-3.3.1.min.js' %} "></script>
 <script src="{% static 'stark/plugins/bootstrap/js/bootstrap.js' %} "></script>
+<script src="{% static 'rbac/js/rbac.js' %}"></script>
 {% block js %} {% endblock %}
 </body>
 </html>
