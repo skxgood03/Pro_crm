@@ -160,4 +160,6 @@ NO_PERMISSION_LIST = [
 
             site.register(StudyRecord,PublicCustConfig)
 
+            哇名称
+
 
