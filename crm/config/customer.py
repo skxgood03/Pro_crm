@@ -5,6 +5,8 @@ from django.utils.safestring import mark_safe
 from django.shortcuts import *
 from crm.models import *
 from django import forms
+
+from crm.permission.base import RbacPermission
 from stark.service.stark import site, StarkConfig, get_choice_text, Option
 
 
@@ -14,7 +16,7 @@ class PubModelForm(forms.ModelForm):
         exclude = ['consultant', 'status']
 
 
-class CustConfig(StarkConfig):
+class CustConfig(RbacPermission,StarkConfig):
     def display_follow(self, row=None, header=False):
         if header:
             return '记录'
@@ -27,7 +29,6 @@ class CustConfig(StarkConfig):
                     display_follow,
                     get_choice_text('source', '来源'),
                     StarkConfig.display_edit_del,
-
                     ]
     order_by = ['-id']
     search_list = ['name', 'qq']
@@ -38,7 +39,7 @@ class CustConfig(StarkConfig):
     ]
 
 
-class PublicCustConfig(StarkConfig):
+class PublicCustConfig(RbacPermission,StarkConfig):
     list_display = [
         StarkConfig.display_checkbox,
         'name',
@@ -46,7 +47,8 @@ class PublicCustConfig(StarkConfig):
         get_choice_text('gender', '性别'),
         get_choice_text('status', '状态'),
         get_choice_text('source', '来源'),
-        StarkConfig.display_edit]
+        StarkConfig.display_edit,
+        ]
 
     def multi_apply(self, request):
         """
@@ -91,7 +93,7 @@ class PriModelForm(forms.ModelForm):
         exclude = ['consultant']
 
 
-class PrivateCustConfig(StarkConfig):
+class PrivateCustConfig(RbacPermission,StarkConfig):
     def display_follow(self, row=None, header=False):
         if header:
             return '记录'
@@ -106,7 +108,8 @@ class PrivateCustConfig(StarkConfig):
         get_choice_text('status', '状态'),
         display_follow,
         get_choice_text('source', '来源'),
-        StarkConfig.display_edit]
+        StarkConfig.display_edit,
+   StarkConfig.display_del ]
     order_by = ['-id']
     search_list = ['name', 'qq']
     list_filter = [

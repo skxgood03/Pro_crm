@@ -5,9 +5,11 @@ from django.utils.safestring import mark_safe
 from django.shortcuts import *
 from crm.models import *
 from django import forms
+
+from crm.permission.base import RbacPermission
 from stark.service.stark import site, StarkConfig, get_choice_text, Option
 
-class ConsultConfig(StarkConfig):
+class ConsultConfig(RbacPermission,StarkConfig):
     list_display = ['customer','note','consultant']
 
     def get_queryset(self):
@@ -21,7 +23,7 @@ class PriModelForm(forms.ModelForm):
         model = ConsultRecord
         exclude = ['customer','consultant']
 
-class PirConsultConfig(StarkConfig):
+class PirConsultConfig(RbacPermission,StarkConfig):
     list_display = ['customer','note','consultant',StarkConfig.display_edit_del]
     model_form_class = PriModelForm
     def get_queryset(self):

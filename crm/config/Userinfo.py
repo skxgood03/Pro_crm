@@ -2,10 +2,11 @@ from django.urls import path
 from django.utils.safestring import mark_safe
 from django.shortcuts import *
 from crm.models import *
+from crm.permission.base import RbacPermission
 from stark.service.stark import site, StarkConfig, get_choice_text
 
 
-class UserConfig(StarkConfig):
+class UserConfig(RbacPermission,StarkConfig):
     # 自定义显示性别
 
     def display_gender(self, row=None, header=False):

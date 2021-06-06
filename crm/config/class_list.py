@@ -2,10 +2,11 @@ from django.urls import path
 from django.utils.safestring import mark_safe
 from django.shortcuts import *
 from crm.models import *
+from crm.permission.base import RbacPermission
 from stark.service.stark import site, StarkConfig,Option
 
 
-class Class_listConfig(StarkConfig):
+class Class_listConfig(RbacPermission,StarkConfig):
 
     def display_title(self, row=None, header=False):
         if header:
@@ -21,7 +22,7 @@ class Class_listConfig(StarkConfig):
                     # 'graduate_date',
                     'class_teacher',
                     # 'tech_teachers_set__nickname',
-                    StarkConfig.display_edit_del]
+                    StarkConfig.display_edit]
     list_filter = [
         Option(field='school',is_choice=False,is_multi=False,text_func=lambda x:x.title,value_func=lambda x:x.pk),
         Option(field='course',is_choice=False,is_multi=False,text_func=lambda x:x.name,value_func=lambda x:x.pk),

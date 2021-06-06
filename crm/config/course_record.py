@@ -5,10 +5,12 @@ from django.utils.safestring import mark_safe
 from django.shortcuts import *
 from crm.models import *
 from django import forms
+
+from crm.permission.base import RbacPermission
 from stark.service.stark import site, StarkConfig, get_choice_text, Option
 
 
-class CourseRecordConfig(StarkConfig):
+class CourseRecordConfig(RbacPermission,StarkConfig):
     def display_title(self, row=None, header=False):
         if header:
             return "上课记录"

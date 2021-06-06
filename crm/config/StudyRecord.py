@@ -5,9 +5,11 @@ from django.utils.safestring import mark_safe
 from django.shortcuts import *
 from crm.models import *
 from django import forms
+
+from crm.permission.base import RbacPermission
 from stark.service.stark import site, StarkConfig, get_choice_text, Option
 
-class StudyRecordConfig(StarkConfig):
+class StudyRecordConfig(RbacPermission,StarkConfig):
     list_display = ['student',StarkConfig.display_edit]
 
     def get_queryset(self):

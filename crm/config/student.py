@@ -2,10 +2,11 @@ from django.urls import path
 from django.utils.safestring import mark_safe
 from django.shortcuts import *
 from crm.models import *
+from crm.permission.base import RbacPermission
 from stark.service.stark import site, StarkConfig, get_choice_text
 
 
-class StuConfig(StarkConfig):
+class StuConfig(RbacPermission,StarkConfig):
 
     def display_class_list(self,row=None,header = False):
         if header:

@@ -116,6 +116,48 @@ NO_PERMISSION_LIST = [
     在想要生成的页面引入css样式
         <link rel="stylesheet" href="{% static 'stark/css/nav.css' %} "/>
         <script src="{% static 'rbac/js/rbac.js' %}"></script>
+15.按钮控制
+    第一种方式：在前端页面
+        #加在需要控制的按钮上
+       {% if request|has_permission:'add' %}
+           <td><a href="{% url 'add' %}">增加</a></td>
+       {% endif %}
+    第二种方式：在stark组件中通过基类
+       权限类：
+        from django.conf import settings
+        from stark.service.stark import StarkConfig
+        class RbacPermission(object):
 
+            def get_add_btn(self):
+                name = '%s' % (self.get_add_url_name)
+                permission_dict = self.request.session.get(settings.PERMISSION_SESSION_KEY)
+                if name in permission_dict:
+                    return super().get_add_btn()
+
+            def get_list_display(self):
+                val = super().get_list_display()
+                permission_dict = self.request.session.get(settings.PERMISSION_SESSION_KEY)
+                edit_name = '%s' % (self.get_change_url_name)
+                del_name = '%s' % (self.get_del_url_name)
+                if edit_name not in permission_dict:
+                    if StarkConfig.display_edit in self.list_display:
+                        return val.remove(StarkConfig.display_edit)
+                # else:
+                #     pass
+                # else:
+                #     return val
+                if del_name not in permission_dict:
+                    if StarkConfig.display_del in self.list_display:
+                        return val.remove(StarkConfig.display_del)
+                    # else:
+                    #     pass
+                return val
+        配置类：
+            from crm.permission.base import RbacPermission
+            class PublicCustConfig(RbacPermission,StarkConfig):
+                ...
+                return
+
+            site.register(StudyRecord,PublicCustConfig)
 
 
